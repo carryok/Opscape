@@ -1,122 +1,154 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import CodeBuilding from "./components/CodeBuilding";
+import DependencyLine from "./components/DependencyLine";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [data, setData] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const getPosition = (index) => [
+  (index % 3) * 4,
+  0,
+  Math.floor(index / 3) * 4,
+  ];
+
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/analyze?path=app")
+      .then((response) => response.json())
+      .then((result) => setData(result));
+  }, []);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <Canvas
+        camera={{ position: [12, 10, 12], fov: 60 }}
+        onPointerMissed={() => setSelectedFile(null)}
+      >
+
+    <ambientLight intensity={1} />
+
+    {data?.files.map((file, sourceIndex) =>
+      file.dependencies.map((dependency) => {
+          const targetIndex = data.files.findIndex(
+            (target) => target.path === dependency
+          );
+
+    if (targetIndex === -1) return null;
+
+    const start = getPosition(sourceIndex);
+    const end = getPosition(targetIndex);
+
+
+    const startHeight = Math.max(
+      Math.log2(file.lines + 1),
+      1
+    );
+
+const targetFile = data.files[targetIndex];
+
+const endHeight = Math.max(
+  Math.log2(targetFile.lines + 1),
+  1
+);
+
+
+    return (
+      <DependencyLine
+        key={`${file.path}-${dependency}`}
+        start={[start[0], startHeight, start[2]]}
+        end={[end[0], endHeight, end[2]]}
+          />
+        );
+      })
+    )}
+
+
+        {data?.files.map((file, index) => (
+          <CodeBuilding
+            key={file.path}
+            file={file}
+            position={getPosition(index)}
+            onSelect={setSelectedFile}
+          />
+        ))}
+
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[4, 0, 2]}
         >
-          Count is {count}
-        </button>
-      </section>
+          <planeGeometry args={[14, 10]} />
+          <meshStandardMaterial color="#222222" />
+        </mesh>
 
-      <div className="ticks"></div>
+        <OrbitControls />
+      </Canvas>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {selectedFile && (
+        <div
+          style={{
+            position: "absolute",
+            top: 20,
+            right: 20,
+            width: 280,
+            padding: 20,
+            background: "white",
+            borderRadius: 10,
+          }}
+        >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+        <h2>{selectedFile.path}</h2>
+
+          <button onClick={() => setSelectedFile(null)}>
+            ×
+          </button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          <p>
+            <strong>Lines:</strong> {selectedFile.lines}
+          </p>
+
+          <p>
+            <strong>Functions:</strong>{" "}
+            {selectedFile.functions.length}
+          </p>
+
+          <p>
+            <strong>Classes:</strong>{" "}
+            {selectedFile.classes.length}
+          </p>
+
+          <p>
+            <strong>Dependencies:</strong>{" "}
+            {selectedFile.dependencies.length}
+          </p>
+
+          <h3>Functions</h3>
+
+          {selectedFile.functions.length === 0 ? (
+            <p>No functions</p>
+          ) : (
+            <ul>
+              {selectedFile.functions.map((fn) => (
+                <li key={fn.name}>
+                  {fn.name} — complexity {fn.complexity}
+                </li>
+              ))}
+            </ul>
+          )}
+
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
