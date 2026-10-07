@@ -362,6 +362,11 @@ function App() {
           </p>
 
           <p>
+            <strong>Complexity:</strong>{" "}
+            {selectedFile.complexity}
+          </p>
+
+          <p>
             <strong>Functions:</strong>{" "}
             {selectedFile.functions.length}
           </p>
@@ -374,6 +379,28 @@ function App() {
           <p>
             <strong>Dependencies:</strong>{" "}
             {selectedFile.dependencies.length}
+          </p>
+
+          <h3>Git History</h3>
+
+          <p>
+            <strong>Commits:</strong>{" "}
+            {selectedFile.git_metrics.commits}
+          </p>
+
+          <p>
+            <strong>Insertions:</strong>{" "}
+            {selectedFile.git_metrics.insertions}
+          </p>
+
+          <p>
+            <strong>Deletions:</strong>{" "}
+            {selectedFile.git_metrics.deletions}
+          </p>
+
+          <p>
+            <strong>Total Changes:</strong>{" "}
+            {selectedFile.git_metrics.changes}
           </p>
 
           <h3>Functions</h3>
