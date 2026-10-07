@@ -62,26 +62,26 @@ function CodeBuilding({
         distanceFactor={10}
         occlude={false}
       >
-        <div
-          style={{
-            background: isSelected
-              ? "gold"
-              : "black",
-            color: isSelected
-              ? "black"
-              : "white",
-            padding: "4px 8px",
-            borderRadius: "4px",
-            fontSize: "12px",
-            whiteSpace: "nowrap",
-            pointerEvents: "none",
-            fontWeight: isSelected
-              ? "bold"
-              : "normal",
-          }}
-        >
-          {file.path}
-        </div>
+      <div
+        style={{
+          background: isSelected
+            ? "gold"
+            : "black",
+          color: isSelected
+            ? "black"
+            : "white",
+          padding: "4px 8px",
+          borderRadius: "4px",
+          fontSize: "12px",
+          whiteSpace: "nowrap",
+          pointerEvents: "none",
+          fontWeight: isSelected
+            ? "bold"
+            : "normal",
+        }}
+      >
+        {file.path}
+      </div>
       </Html>
     </mesh>
   );

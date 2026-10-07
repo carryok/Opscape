@@ -7,7 +7,13 @@ class FunctionInfo(BaseModel):
     end_line: int
     complexity: int
 
+class GitMetrics(BaseModel):
+    commits: int
+    insertions: int
+    deletions: int
+    changes: int
 
+    
 class FileInfo(BaseModel):
     path: str
     lines: int
@@ -15,6 +21,7 @@ class FileInfo(BaseModel):
     functions: list[FunctionInfo]
     classes: list[dict]
     dependencies: list[str]
+    git_metrics: GitMetrics
 
 
 class RepositoryInfo(BaseModel):

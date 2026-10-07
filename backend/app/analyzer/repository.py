@@ -2,7 +2,7 @@ from pathlib import Path
 
 from app.analyzer.parser import analyze_file
 from app.analyzer.dependencies import resolve_import
-
+from app.analyzer.git_metrics import get_file_git_metrics
 
 IGNORED_DIRECTORIES = {
     ".git",
@@ -44,6 +44,14 @@ def analyze_repository(root_path: str) -> dict:
                 dependencies.append(resolved)
 
         result["dependencies"] = dependencies
+
+        git_metrics = get_file_git_metrics(
+            root.parent,
+            str(root.name / relative_path)
+        )
+
+        result["git_metrics"] = git_metrics
+
         files.append(result)
 
     return {
