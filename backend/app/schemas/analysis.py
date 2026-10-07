@@ -11,6 +11,7 @@ class FunctionInfo(BaseModel):
 class FileInfo(BaseModel):
     path: str
     lines: int
+    complexity: float
     functions: list[FunctionInfo]
     classes: list[dict]
     dependencies: list[str]

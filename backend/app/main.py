@@ -30,6 +30,6 @@ def database_health_check():
     return {"database": "connected"}
 
 
-@app.get("/analyze")
+@app.get("/analyze", response_model=RepositoryInfo)
 def analyze(path: str):
     return analyze_repository(path)
