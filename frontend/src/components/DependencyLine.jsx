@@ -1,11 +1,21 @@
 import { Line } from "@react-three/drei";
 
-function DependencyLine({ start, end }) {
+function DependencyLine({
+  start,
+  end,
+  highlighted,
+}) {
   return (
     <Line
       points={[start, end]}
-      color="cyan"
-      lineWidth={2}
+      color={
+        highlighted
+          ? "yellow"
+          : "cyan"
+      }
+      lineWidth={
+        highlighted ? 5 : 1
+      }
     />
   );
 }

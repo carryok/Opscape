@@ -1,6 +1,7 @@
 from pathlib import Path
-from app.analyzer.dependencies import resolve_import
+
 from app.analyzer.parser import analyze_file
+from app.analyzer.dependencies import resolve_import
 
 
 IGNORED_DIRECTORIES = {
@@ -16,16 +17,22 @@ IGNORED_DIRECTORIES = {
 
 def analyze_repository(root_path: str) -> dict:
     root = Path(root_path)
-
     files = []
+    directories = set()
 
     for path in root.rglob("*.py"):
         if any(part in IGNORED_DIRECTORIES for part in path.parts):
             continue
 
-        result = analyze_file(str(path))
-
         relative_path = path.relative_to(root)
+
+        # Record every directory containing Python files.
+        parent = relative_path.parent
+        while parent != Path("."):
+            directories.add(str(parent))
+            parent = parent.parent
+
+        result = analyze_file(str(path))
         result["path"] = str(relative_path)
 
         dependencies = []
@@ -37,11 +44,11 @@ def analyze_repository(root_path: str) -> dict:
                 dependencies.append(resolved)
 
         result["dependencies"] = dependencies
-
         files.append(result)
 
     return {
         "root": str(root),
-        "files": files,
         "total_files": len(files),
+        "directories": sorted(directories),
+        "files": files,
     }

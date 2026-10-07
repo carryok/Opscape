@@ -19,4 +19,5 @@ class FileInfo(BaseModel):
 class RepositoryInfo(BaseModel):
     root: str
     total_files: int
+    directories: list[str]
     files: list[FileInfo]

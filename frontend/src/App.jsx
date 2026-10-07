@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Html } from "@react-three/drei";
+
 import CodeBuilding from "./components/CodeBuilding";
 import DependencyLine from "./components/DependencyLine";
 
@@ -8,83 +9,303 @@ function App() {
   const [data, setData] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const getPosition = (index) => [
-  (index % 3) * 4,
-  0,
-  Math.floor(index / 3) * 4,
-  ];
+  // --------------------------------------------------
+  // Calculate 3D position of a file
+  // --------------------------------------------------
 
+  const getPosition = (file) => {
+    const pathParts = file.path.split("\\");
+
+    // Root-level files
+    if (pathParts.length === 1) {
+      const filesInRoot = data.files.filter(
+        (item) => item.path.split("\\").length === 1
+      );
+
+      const fileIndex = filesInRoot.findIndex(
+        (item) => item.path === file.path
+      );
+
+      return [
+        (fileIndex % 3) * 4 - 4,
+        0,
+        Math.floor(fileIndex / 3) * 4,
+      ];
+    }
+
+    // Files inside directories
+    const directory = pathParts[0];
+
+    const directoryIndex =
+      data.directories.indexOf(directory);
+
+    const districtX = directoryIndex * 10 + 12;
+    const districtZ = 2;
+
+    const filesInDirectory = data.files.filter(
+      (item) =>
+        item.path.split("\\")[0] === directory
+    );
+
+    const fileIndex = filesInDirectory.findIndex(
+      (item) => item.path === file.path
+    );
+
+    return [
+      districtX + (fileIndex % 3) * 4 - 4,
+      0,
+      districtZ +
+        Math.floor(fileIndex / 3) * 4 -
+        2,
+    ];
+  };
+
+  // --------------------------------------------------
+  // Load repository analysis
+  // --------------------------------------------------
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/analyze?path=app")
       .then((response) => response.json())
-      .then((result) => setData(result));
+      .then((result) => {
+        console.log("Repository analysis:", result);
+        setData(result);
+      })
+      .catch((error) => {
+        console.error(
+          "Failed to analyze repository:",
+          error
+        );
+      });
   }, []);
 
-  return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <Canvas
-        camera={{ position: [12, 10, 12], fov: 60 }}
-        onPointerMissed={() => setSelectedFile(null)}
-      >
+  // --------------------------------------------------
+  // Determine whether a file is related to the
+  // currently selected file.
+  // --------------------------------------------------
 
-    <ambientLight intensity={1} />
+  const isRelatedFile = (file) => {
+    if (!selectedFile) {
+      return false;
+    }
 
-    {data?.files.map((file, sourceIndex) =>
-      file.dependencies.map((dependency) => {
-          const targetIndex = data.files.findIndex(
-            (target) => target.path === dependency
-          );
+    // File imported by selected file
+    const selectedDependsOn =
+      selectedFile.dependencies.includes(file.path);
 
-    if (targetIndex === -1) return null;
-
-    const start = getPosition(sourceIndex);
-    const end = getPosition(targetIndex);
-
-
-    const startHeight = Math.max(
-      Math.log2(file.lines + 1),
-      1
-    );
-
-const targetFile = data.files[targetIndex];
-
-const endHeight = Math.max(
-  Math.log2(targetFile.lines + 1),
-  1
-);
-
+    // File that imports selected file
+    const fileDependsOnSelected =
+      file.dependencies.includes(selectedFile.path);
 
     return (
-      <DependencyLine
-        key={`${file.path}-${dependency}`}
-        start={[start[0], startHeight, start[2]]}
-        end={[end[0], endHeight, end[2]]}
-          />
-        );
-      })
-    )}
+      selectedDependsOn ||
+      fileDependsOnSelected
+    );
+  };
 
+  // --------------------------------------------------
+  // Check whether a dependency line is related to
+  // the selected file.
+  // --------------------------------------------------
 
-        {data?.files.map((file, index) => (
+  const isRelatedDependency = (
+    sourceFile,
+    targetFile
+  ) => {
+    if (!selectedFile) {
+      return false;
+    }
+
+    return (
+      sourceFile.path === selectedFile.path ||
+      targetFile.path === selectedFile.path
+    );
+  };
+
+  return (
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
+      <Canvas
+        camera={{
+          position: [16, 14, 18],
+          fov: 60,
+        }}
+        onPointerMissed={() =>
+          setSelectedFile(null)
+        }
+      >
+        {/* --------------------------------------------------
+            Lighting
+        -------------------------------------------------- */}
+
+        <ambientLight intensity={1} />
+
+        <directionalLight
+          position={[10, 15, 10]}
+          intensity={2}
+        />
+
+        {/* --------------------------------------------------
+            Dependency lines
+        -------------------------------------------------- */}
+
+        {data?.files.map((file) =>
+          file.dependencies.map((dependency) => {
+            const targetFile = data.files.find(
+              (target) =>
+                target.path === dependency
+            );
+
+            if (!targetFile) {
+              return null;
+            }
+
+            const start = getPosition(file);
+            const end = getPosition(targetFile);
+
+            const startHeight = Math.max(
+              Math.log2(file.lines + 1),
+              1
+            );
+
+            const endHeight = Math.max(
+              Math.log2(targetFile.lines + 1),
+              1
+            );
+
+            const related = isRelatedDependency(
+              file,
+              targetFile
+            );
+
+            return (
+              <DependencyLine
+                key={`${file.path}-${dependency}`}
+                start={[
+                  start[0],
+                  startHeight,
+                  start[2],
+                ]}
+                end={[
+                  end[0],
+                  endHeight,
+                  end[2],
+                ]}
+                highlighted={related}
+              />
+            );
+          })
+        )}
+
+        {/* --------------------------------------------------
+            Code buildings
+        -------------------------------------------------- */}
+
+        {data?.files.map((file) => (
           <CodeBuilding
             key={file.path}
             file={file}
-            position={getPosition(index)}
+            position={getPosition(file)}
             onSelect={setSelectedFile}
+            isSelected={
+              selectedFile?.path === file.path
+            }
+            isRelated={isRelatedFile(file)}
           />
         ))}
 
+        {/* ==================================================
+            ROOT DISTRICT
+        ================================================== */}
+
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
-          position={[4, 0, 2]}
+          position={[-2, -0.05, 2]}
         >
-          <planeGeometry args={[14, 10]} />
+          <planeGeometry args={[10, 7]} />
+
           <meshStandardMaterial color="#222222" />
+
+          <Html
+            position={[0, 0, 0]}
+            center
+            rotation={[Math.PI / 2, 0, 0]}
+            distanceFactor={12}
+          >
+            <div
+              style={{
+                color: "white",
+                background:
+                  "rgba(0, 0, 0, 0.8)",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                fontSize: "14px",
+                fontWeight: "bold",
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+              }}
+            >
+              ROOT
+            </div>
+          </Html>
         </mesh>
+
+        {/* ==================================================
+            SUBDIRECTORY DISTRICTS
+        ================================================== */}
+
+        {data?.directories.map(
+          (directory, index) => (
+            <mesh
+              key={directory}
+              rotation={[-Math.PI / 2, 0, 0]}
+              position={[
+                index * 10 + 12,
+                -0.05,
+                2,
+              ]}
+            >
+              <planeGeometry args={[10, 7]} />
+
+              <meshStandardMaterial color="#222222" />
+
+              <Html
+                position={[0, 0, 0]}
+                center
+                rotation={[Math.PI / 2, 0, 0]}
+                distanceFactor={12}
+              >
+                <div
+                  style={{
+                    color: "white",
+                    background:
+                      "rgba(0, 0, 0, 0.8)",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    whiteSpace: "nowrap",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {directory.toUpperCase()}
+                </div>
+              </Html>
+            </mesh>
+          )
+        )}
 
         <OrbitControls />
       </Canvas>
+
+      {/* ==================================================
+          FILE INFORMATION PANEL
+      ================================================== */}
 
       {selectedFile && (
         <div
@@ -96,24 +317,48 @@ const endHeight = Math.max(
             padding: 20,
             background: "white",
             borderRadius: 10,
+            boxShadow:
+              "0 8px 30px rgba(0, 0, 0, 0.2)",
+            fontFamily:
+              "Arial, sans-serif",
           }}
         >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-        <h2>{selectedFile.path}</h2>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 18,
+                wordBreak: "break-word",
+              }}
+            >
+              {selectedFile.path}
+            </h2>
 
-          <button onClick={() => setSelectedFile(null)}>
-            ×
-          </button>
-        </div>
+            <button
+              onClick={() =>
+                setSelectedFile(null)
+              }
+              style={{
+                cursor: "pointer",
+                border: "none",
+                background: "transparent",
+                fontSize: 20,
+              }}
+            >
+              ×
+            </button>
+          </div>
 
           <p>
-            <strong>Lines:</strong> {selectedFile.lines}
+            <strong>Lines:</strong>{" "}
+            {selectedFile.lines}
           </p>
 
           <p>
@@ -137,14 +382,16 @@ const endHeight = Math.max(
             <p>No functions</p>
           ) : (
             <ul>
-              {selectedFile.functions.map((fn) => (
-                <li key={fn.name}>
-                  {fn.name} — complexity {fn.complexity}
-                </li>
-              ))}
+              {selectedFile.functions.map(
+                (fn) => (
+                  <li key={fn.name}>
+                    {fn.name} — complexity{" "}
+                    {fn.complexity}
+                  </li>
+                )
+              )}
             </ul>
           )}
-
         </div>
       )}
     </div>
