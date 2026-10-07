@@ -7,25 +7,27 @@ function CodeBuilding({
   isSelected,
   isRelated,
 }) {
+  const complexity = Number(file.complexity ?? 1);
+
   const height = Math.max(
     Math.log2(file.lines + 1),
     1
   );
 
-  const complexity =
-    file.functions.length > 0
-      ? file.functions.reduce(
-          (total, fn) => total + fn.complexity,
-          0
-        ) / file.functions.length
-      : 1;
+  let buildingColor = "limegreen";
 
-  let buildingColor = "orange";
+  if (complexity >= 6) {
+    buildingColor = "crimson";
+  } else if (complexity >= 4) {
+    buildingColor = "orange";
+  }
+
+  if (isRelated) {
+    buildingColor = "skyblue";
+  }
 
   if (isSelected) {
     buildingColor = "yellow";
-  } else if (isRelated) {
-    buildingColor = "skyblue";
   }
 
   return (
@@ -42,9 +44,9 @@ function CodeBuilding({
     >
       <boxGeometry
         args={[
-          1.5 + complexity * 0.15,
+          1.4 + complexity * 0.3,
           height,
-          1.5 + complexity * 0.15,
+          1.4 + complexity * 0.3,
         ]}
       />
 
