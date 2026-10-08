@@ -241,6 +241,7 @@ function App() {
             position={getPosition(file)}
             onSelect={setSelectedFile}
             churnIntensity={getChurnIntensity(file)}
+            hotspotScore={file.hotspot_score}
             isSelected={
               selectedFile?.path === file.path
             }
@@ -289,44 +290,68 @@ function App() {
         ================================================== */}
 
         {data?.directories.map(
-          (directory, index) => (
-            <mesh
-              key={directory}
-              rotation={[-Math.PI / 2, 0, 0]}
-              position={[
-                index * 10 + 12,
-                -0.05,
-                2,
-              ]}
-            >
-              <planeGeometry args={[10, 7]} />
+          (directory, index) => {
+            const metrics =
+              data.directory_metrics?.[directory];
 
-              <meshStandardMaterial color="#222222" />
-
-              <Html
-                position={[0, 0, 0]}
-                center
-                rotation={[Math.PI / 2, 0, 0]}
-                distanceFactor={12}
+            return (
+              <mesh
+                key={directory}
+                rotation={[-Math.PI / 2, 0, 0]}
+                position={[
+                  index * 10 + 12,
+                  -0.05,
+                  2,
+                ]}
               >
-                <div
-                  style={{
-                    color: "white",
-                    background:
-                      "rgba(0, 0, 0, 0.8)",
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    whiteSpace: "nowrap",
-                    pointerEvents: "none",
-                  }}
+                <planeGeometry args={[10, 7]} />
+
+                <meshStandardMaterial color="#222222" />
+
+                <Html
+                  position={[0, 0, 0]}
+                  center
+                  rotation={[Math.PI / 2, 0, 0]}
+                  distanceFactor={12}
                 >
-                  {directory.toUpperCase()}
-                </div>
-              </Html>
-            </mesh>
-          )
+                  <div
+                    style={{
+                      color: "white",
+                      background:
+                        "rgba(0, 0, 0, 0.8)",
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      fontWeight: "bold",
+                      whiteSpace: "nowrap",
+                      pointerEvents: "none",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    <div>
+                      {directory.toUpperCase()}
+                    </div>
+
+                    {metrics && (
+                      <>
+                        <div>
+                          Files: {metrics.files}
+                        </div>
+
+                        <div>
+                          Lines: {metrics.lines}
+                        </div>
+
+                        <div>
+                          Hotspot: {metrics.hotspot_score}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </Html>
+              </mesh>
+            );
+          }
         )}
 
         <OrbitControls />
@@ -393,6 +418,11 @@ function App() {
           <p>
             <strong>Complexity:</strong>{" "}
             {selectedFile.complexity}
+          </p>
+
+          <p>
+            <strong>Hotspot:</strong>{" "}
+            {selectedFile.hotspot_score}
           </p>
 
           <p>

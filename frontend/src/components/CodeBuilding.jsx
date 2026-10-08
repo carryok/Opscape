@@ -8,6 +8,7 @@ function CodeBuilding({
   isSelected,
   isRelated,
   churnIntensity = 0,
+  hotspotScore = 0,
 }) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -20,6 +21,7 @@ function CodeBuilding({
 
   const changes = file.git_metrics?.changes ?? 0;
   const commits = file.git_metrics?.commits ?? 0;
+  const hotspotGlow = hotspotScore * 1.5;
 
   let buildingColor = "limegreen";
 
@@ -68,7 +70,10 @@ function CodeBuilding({
       <meshStandardMaterial
         color={buildingColor}
         emissive={buildingColor}
-        emissiveIntensity={churnIntensity * 0.6}
+        emissiveIntensity={Math.max(
+        churnIntensity * 0.6,
+        hotspotGlow
+      )}
       />
 
       <Html
