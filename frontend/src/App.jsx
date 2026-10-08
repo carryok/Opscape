@@ -61,6 +61,34 @@ function App() {
   };
 
   // --------------------------------------------------
+  // Calculate Git churn intensity
+  // --------------------------------------------------
+
+  const getChurnIntensity = (file) => {
+    if (!data?.files?.length) {
+      return 0;
+    }
+
+    const maxChanges = Math.max(
+      ...data.files.map(
+        (item) => item.git_metrics?.changes ?? 0
+      )
+    );
+
+    if (maxChanges === 0) {
+      return 0;
+    }
+
+    const changes =
+      file.git_metrics?.changes ?? 0;
+
+    return (
+      Math.log2(changes + 1) /
+      Math.log2(maxChanges + 1)
+    );
+  };
+
+  // --------------------------------------------------
   // Load repository analysis
   // --------------------------------------------------
 
@@ -212,6 +240,7 @@ function App() {
             file={file}
             position={getPosition(file)}
             onSelect={setSelectedFile}
+            churnIntensity={getChurnIntensity(file)}
             isSelected={
               selectedFile?.path === file.path
             }
