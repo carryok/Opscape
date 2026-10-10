@@ -67,7 +67,13 @@ class ExecutionTracer(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_If(self, node):
-        self.add_step(node, "condition", "Check if condition")
+        condition = ast.unparse(node.test)
+
+        self.add_step(
+            node,
+            "condition",
+            f"Evaluate condition: {condition}",
+        )
 
         for statement in node.body:
             self.add_step(
@@ -87,7 +93,14 @@ class ExecutionTracer(ast.NodeVisitor):
                 self.visit(statement)
 
     def visit_For(self, node):
-        self.add_step(node, "loop", "Start of for-loop structure")
+        target = ast.unparse(node.target)
+        iterable = ast.unparse(node.iter)
+
+        self.add_step(
+            node,
+            "loop",
+            f"For-loop header: for {target} in {iterable}",
+        )
 
         for statement in node.body:
             self.add_step(
@@ -105,9 +118,14 @@ class ExecutionTracer(ast.NodeVisitor):
             )
             self.visit(statement)
 
-
     def visit_While(self, node):
-        self.add_step(node, "loop", "Start of while-loop structure")
+        condition = ast.unparse(node.test)
+
+        self.add_step(
+            node,
+            "loop",
+            f"While-loop condition: {condition}",
+        )
 
         for statement in node.body:
             self.add_step(
