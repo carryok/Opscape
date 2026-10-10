@@ -66,6 +66,7 @@ class ExecutionTracer(ast.NodeVisitor):
         self.add_step(node, "return", detail)
         self.generic_visit(node)
 
+
     def visit_If(self, node):
         condition = ast.unparse(node.test)
 
@@ -84,13 +85,27 @@ class ExecutionTracer(ast.NodeVisitor):
             self.visit(statement)
 
         if node.orelse:
-            for statement in node.orelse:
+            is_elif = (
+                len(node.orelse) == 1
+                and isinstance(node.orelse[0], ast.If)
+            )
+
+            if is_elif:
                 self.add_step(
-                    statement,
+                    node.orelse[0],
                     "branch",
-                    "Statement inside the else branch",
+                    "Continue to the elif condition if the previous condition fails",
                 )
-                self.visit(statement)
+                self.visit(node.orelse[0])
+            else:
+                for statement in node.orelse:
+                    self.add_step(
+                        statement,
+                        "branch",
+                        "Statement inside the else branch",
+                    )
+                    self.visit(statement)
+
 
     def visit_For(self, node):
         target = ast.unparse(node.target)
