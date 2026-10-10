@@ -7,9 +7,11 @@ function CodeBuilding({
   onSelect,
   isSelected,
   isRelated,
+  isTraceActive,
   churnIntensity = 0,
   hotspotScore = 0,
 }) {
+
   const [isHovered, setIsHovered] = useState(false);
 
   const complexity = Number(file.complexity ?? 1);
@@ -37,6 +39,10 @@ function CodeBuilding({
 
   if (isSelected) {
     buildingColor = "yellow";
+  }
+
+  if (isTraceActive) {
+  buildingColor = "#00FFFF";
   }
 
   return (

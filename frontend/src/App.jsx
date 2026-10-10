@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
+import Callumina from "./components/Callumina";
 
 import CodeBuilding from "./components/CodeBuilding";
 import DependencyLine from "./components/DependencyLine";
@@ -8,6 +9,7 @@ import DependencyLine from "./components/DependencyLine";
 function App() {
   const [data, setData] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [activeTraceStep, setActiveTraceStep] = useState(null);
 
   // --------------------------------------------------
   // Calculate 3D position of a file
@@ -247,6 +249,7 @@ function App() {
               selectedFile?.path === file.path
             }
             isRelated={isRelatedFile(file)}
+            isTraceActive={activeTraceStep?.path === file.path}
           />
         ))}
 
@@ -357,6 +360,11 @@ function App() {
 
         <OrbitControls />
       </Canvas>
+
+      <Callumina
+        selectedFile={selectedFile}
+        onActiveStepChange={setActiveTraceStep}
+      />
 
       {/* ==================================================
           FILE INFORMATION PANEL
