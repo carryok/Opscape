@@ -1,6 +1,6 @@
 
 import ast
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 
 
 @dataclass
@@ -13,8 +13,6 @@ class TraceStep:
 
 
 class ExecutionTracer(ast.NodeVisitor):
-    """Build a static, ordered outline of Python statements and calls."""
-
     def __init__(self):
         self.steps = []
         self.current_function = "<module>"
@@ -31,7 +29,11 @@ class ExecutionTracer(ast.NodeVisitor):
         )
 
     def visit_FunctionDef(self, node):
-        self.add_step(node, "function_definition", f"Define {node.name}")
+        self.add_step(
+            node,
+            "function_definition",
+            f"Define function {node.name}",
+        )
 
         previous_function = self.current_function
         self.current_function = node.name
@@ -55,30 +57,84 @@ class ExecutionTracer(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Return(self, node):
-        self.add_step(node, "return", "Return value")
+        if node.value is None:
+            detail = "Return without a value"
+        else:
+            expression = ast.unparse(node.value)
+            detail = f"Return expression: {expression}"
+
+        self.add_step(node, "return", detail)
         self.generic_visit(node)
 
     def visit_If(self, node):
-        self.add_step(node, "condition", "Evaluate if condition")
-        self.generic_visit(node)
+        self.add_step(node, "condition", "Check if condition")
+
+        for statement in node.body:
+            self.add_step(
+                statement,
+                "branch",
+                "Statement inside the if branch",
+            )
+            self.visit(statement)
+
+        if node.orelse:
+            for statement in node.orelse:
+                self.add_step(
+                    statement,
+                    "branch",
+                    "Statement inside the else branch",
+                )
+                self.visit(statement)
 
     def visit_For(self, node):
-        self.add_step(node, "loop", "For loop")
-        self.generic_visit(node)
+        self.add_step(node, "loop", "Start of for-loop structure")
+
+        for statement in node.body:
+            self.add_step(
+                statement,
+                "loop_body",
+                "Statement inside the for-loop body",
+            )
+            self.visit(statement)
+
+        for statement in node.orelse:
+            self.add_step(
+                statement,
+                "loop_else",
+                "Statement inside the for-loop else block",
+            )
+            self.visit(statement)
+
 
     def visit_While(self, node):
-        self.add_step(node, "loop", "While loop")
-        self.generic_visit(node)
+        self.add_step(node, "loop", "Start of while-loop structure")
+
+        for statement in node.body:
+            self.add_step(
+                statement,
+                "loop_body",
+                "Statement inside the while-loop body",
+            )
+            self.visit(statement)
+
+        for statement in node.orelse:
+            self.add_step(
+                statement,
+                "loop_else",
+                "Statement inside the while-loop else block",
+            )
+            self.visit(statement)
 
 
 def trace_python_source(source: str) -> dict:
-    """Return a static outline; this does not execute the source code."""
     try:
         tree = ast.parse(source)
     except SyntaxError as exc:
         return {
             "status": "error",
-            "message": f"Syntax error on line {exc.lineno}: {exc.msg}",
+            "message": (
+                f"Syntax error on line {exc.lineno}: {exc.msg}"
+            ),
             "steps": [],
         }
 
