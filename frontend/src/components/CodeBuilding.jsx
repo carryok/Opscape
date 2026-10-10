@@ -23,21 +23,21 @@ function CodeBuilding({
   const commits = file.git_metrics?.commits ?? 0;
   const hotspotGlow = hotspotScore * 1.5;
 
-  let buildingColor = "limegreen";
+  let buildingColor = "#32CD32"; // LOW: lime green
 
-  if (complexity >= 6) {
-    buildingColor = "crimson";
-  } else if (complexity >= 4) {
-    buildingColor = "orange";
+  if (file.health === "HIGH") {
+    buildingColor = "#DC143C"; // HIGH: crimson
+  } else if (file.health === "MEDIUM") {
+    buildingColor = "#FFA500"; // MEDIUM: orange
   }
 
-  if (isRelated) {
-    buildingColor = "skyblue";
-  }
+  // if (isRelated) {
+  //   buildingColor = "skyblue";
+  // }
 
-  if (isSelected) {
-    buildingColor = "yellow";
-  }
+  // if (isSelected) {
+  //   buildingColor = "yellow";
+  // }
 
   return (
     <mesh
@@ -67,14 +67,7 @@ function CodeBuilding({
         ]}
       />
 
-      <meshStandardMaterial
-        color={buildingColor}
-        emissive={buildingColor}
-        emissiveIntensity={Math.max(
-        churnIntensity * 0.6,
-        hotspotGlow
-      )}
-      />
+      <meshBasicMaterial color={buildingColor} />
 
       <Html
         position={[

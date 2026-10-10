@@ -106,6 +106,30 @@ def analyze_repository(root_path: str) -> dict:
             (complexity_score + churn_score) / 2,
             2,
         )
+        
+        if file["hotspot_score"] > 0.66:
+            file["health"] = "HIGH"
+        elif file["hotspot_score"] >= 0.33:
+            file["health"] = "MEDIUM"
+        else:
+            file["health"] = "LOW"
+
+        reasons = []
+
+        if file["complexity"] >= 6:
+            reasons.append("High code complexity")
+
+        if file["git_metrics"]["changes"] >= 50:
+            reasons.append("Frequent code changes")
+
+        if file["lines"] >= 100:
+            reasons.append("Large file")
+
+        if not reasons:
+            reasons.append("No major hotspot indicators")
+
+        file["health_reasons"] = reasons
+
         directory_metrics = {}
 
     for file in files:

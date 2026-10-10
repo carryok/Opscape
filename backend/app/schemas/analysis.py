@@ -19,6 +19,8 @@ class FileInfo(BaseModel):
     lines: int
     complexity: float
     hotspot_score: float
+    health: str
+    health_reasons: list[str]
     functions: list[FunctionInfo]
     classes: list[dict]
     dependencies: list[str]

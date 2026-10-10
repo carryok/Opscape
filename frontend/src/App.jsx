@@ -426,6 +426,21 @@ function App() {
           </p>
 
           <p>
+            <strong>Health:</strong>{" "}
+            {selectedFile.health}
+          </p>
+
+          <div>
+            <strong>Why was this classified this way?</strong>
+
+            <ul>
+              {selectedFile.health_reasons.map((reason, index) => (
+                <li key={index}>{reason}</li>
+              ))}
+            </ul>
+          </div>
+
+          <p>
             <strong>Functions:</strong>{" "}
             {selectedFile.functions.length}
           </p>
