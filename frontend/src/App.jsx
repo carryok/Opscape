@@ -39,8 +39,9 @@ function App() {
     const directoryIndex =
       data.directories.indexOf(directory);
 
-    const districtX = directoryIndex * 10 + 12;
-    const districtZ = 2;
+    const districtsPerRow = 2;
+    const districtX = (directoryIndex % districtsPerRow) * 20 + 12;
+    const districtZ = Math.floor(directoryIndex / districtsPerRow) * 10;
 
     const filesInDirectory = data.files.filter(
       (item) =>
@@ -299,9 +300,9 @@ function App() {
                 key={directory}
                 rotation={[-Math.PI / 2, 0, 0]}
                 position={[
-                  index * 10 + 12,
+                  (index % 2) * 20 + 12,
                   -0.05,
-                  2,
+                  Math.floor(index / 2) * 10,
                 ]}
               >
                 <planeGeometry args={[10, 7]} />
@@ -368,6 +369,8 @@ function App() {
             top: 20,
             right: 20,
             width: 280,
+            maxHeight: "calc(100vh - 40px)",
+            overflowY: "auto",
             padding: 20,
             background: "white",
             borderRadius: 10,

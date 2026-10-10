@@ -31,13 +31,13 @@ function CodeBuilding({
     buildingColor = "#FFA500"; // MEDIUM: orange
   }
 
-  // if (isRelated) {
-  //   buildingColor = "skyblue";
-  // }
+  if (isRelated) {
+    buildingColor = "deepskyblue";
+  }
 
-  // if (isSelected) {
-  //   buildingColor = "yellow";
-  // }
+  if (isSelected) {
+    buildingColor = "yellow";
+  }
 
   return (
     <mesh
@@ -59,13 +59,13 @@ function CodeBuilding({
         setIsHovered(false);
       }}
     >
-      <boxGeometry
-        args={[
-          1.4 + complexity * 0.3,
-          height,
-          1.4 + complexity * 0.3,
-        ]}
-      />
+    <boxGeometry
+      args={[
+        0.8 + complexity * 0.08,
+        height,
+        0.8 + complexity * 0.08,
+      ]}
+    />
 
       <meshBasicMaterial color={buildingColor} />
 
