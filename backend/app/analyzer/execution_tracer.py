@@ -67,6 +67,7 @@ class ExecutionTracer(ast.NodeVisitor):
         self.generic_visit(node)
 
 
+
     def visit_If(self, node):
         condition = ast.unparse(node.test)
 
@@ -77,11 +78,12 @@ class ExecutionTracer(ast.NodeVisitor):
         )
 
         for statement in node.body:
-            self.add_step(
-                statement,
-                "branch",
-                "Statement inside the if branch",
-            )
+            if isinstance(statement, ast.If):
+                detail = "Nested if statement inside the if branch"
+            else:
+                detail = "Statement inside the if branch"
+
+            self.add_step(statement, "branch", detail)
             self.visit(statement)
 
         if node.orelse:
@@ -91,20 +93,23 @@ class ExecutionTracer(ast.NodeVisitor):
             )
 
             if is_elif:
+                elif_node = node.orelse[0]
                 self.add_step(
-                    node.orelse[0],
+                    elif_node,
                     "branch",
                     "Continue to the elif condition if the previous condition fails",
                 )
-                self.visit(node.orelse[0])
+                self.visit(elif_node)
             else:
                 for statement in node.orelse:
-                    self.add_step(
-                        statement,
-                        "branch",
-                        "Statement inside the else branch",
-                    )
+                    if isinstance(statement, ast.If):
+                        detail = "Nested if statement inside the else branch"
+                    else:
+                        detail = "Statement inside the else branch"
+
+                    self.add_step(statement, "branch", detail)
                     self.visit(statement)
+
 
 
     def visit_For(self, node):
