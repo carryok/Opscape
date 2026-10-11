@@ -52,6 +52,10 @@ class ExecutionTracer(ast.NodeVisitor):
             name = node.func.id
         elif isinstance(node.func, ast.Attribute):
             name = node.func.attr
+            receiver = ast.unparse(node.func.value)
+            name = f"{receiver}.{name}" if isinstance(node.func.value, ast.Name) else (
+                f"{name} (on result of {receiver})"
+            )
         else:
             name = "<call>"
 
