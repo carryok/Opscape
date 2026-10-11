@@ -45,6 +45,7 @@ class ExecutionTracer(ast.NodeVisitor):
 
     visit_AsyncFunctionDef = visit_FunctionDef
 
+
     def visit_Call(self, node):
         if isinstance(node.func, ast.Name):
             name = node.func.id
@@ -53,8 +54,24 @@ class ExecutionTracer(ast.NodeVisitor):
         else:
             name = "<call>"
 
-        self.add_step(node, "function_call", f"Call {name}")
+        arguments = [
+            ast.unparse(argument)
+            for argument in node.args
+        ]
+
+        arguments.extend(
+            f"{keyword.arg}={ast.unparse(keyword.value)}"
+            for keyword in node.keywords
+        )
+
+        if arguments:
+            detail = f"Call {name} with arguments: {', '.join(arguments)}"
+        else:
+            detail = f"Call {name} with no arguments"
+
+        self.add_step(node, "function_call", detail)
         self.generic_visit(node)
+
 
     def visit_Return(self, node):
         if node.value is None:
