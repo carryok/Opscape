@@ -34,9 +34,22 @@ def database_health_check():
     return {"database": "connected"}
 
 
+
 @app.get("/analyze", response_model=RepositoryInfo)
 def analyze(path: str):
-    return analyze_repository(path)
+    try:
+        return analyze_repository(path)
+    except FileNotFoundError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
+    except NotADirectoryError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        ) from error
+
 
 class TraceRequest(BaseModel):
     source: str
