@@ -17,6 +17,13 @@ IGNORED_DIRECTORIES = {
 
 def analyze_repository(root_path: str) -> dict:
     root = Path(root_path)
+
+    if not root.exists():
+        raise FileNotFoundError(f"Repository path does not exist: {root_path}")
+
+    if not root.is_dir():
+        raise NotADirectoryError(f"Repository path is not a directory: {root_path}")
+
     files = []
     directories = set()
 
@@ -130,7 +137,7 @@ def analyze_repository(root_path: str) -> dict:
 
         file["health_reasons"] = reasons
 
-        directory_metrics = {}
+    directory_metrics = {}
 
     for file in files:
         file_path = Path(file["path"])

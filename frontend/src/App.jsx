@@ -347,7 +347,7 @@ function App() {
                         </div>
 
                         <div>
-                          Hotspot: {metrics.hotspot_score}
+                          Hotspot: {Number(metrics.hotspot_score).toFixed(2)}
                         </div>
                       </>
                     )}
